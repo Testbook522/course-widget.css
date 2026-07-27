@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Testbook Course Widget</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 16px;
+      background: #ffffff;
+      font-family: Arial, sans-serif;
+    }
+
+    .tb-course-widget {
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 16px;
+      overflow: hidden;
+      border: 1px solid #dce7f3;
+      border-radius: 16px;
+      background: #f7faff;
+    }
+
+    .tb-course-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .tb-course-heading h2 {
+      margin: 0 0 4px;
+      color: #111827;
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .tb-course-heading p {
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .tb-course-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tb-course-select,
+    .tb-course-search {
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      background: #ffffff;
+      color: #111827;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .tb-course-select {
+      width: 180px;
+    }
+
+    .tb-course-search {
+      width: 190px;
+    }
+
+    .tb-course-slider {
+      position: relative;
+    }
+
+    .tb-course-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 2px 2px 8px;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+
+    .tb-course-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tb-course-card {
+      flex: 0 0 180px;
+      width: 180px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #e2e8f0;
+      border-radius: 11px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .tb-course-card[hidden] {
+      display: none;
+    }
+
+    .tb-course-image {
+      width: 100%;
+      height: 101px;
+      display: block;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+
+    .tb-course-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 9px;
+    }
+
+    .tb-course-label {
+      display: inline-block;
+      width: fit-content;
+      margin-bottom: 7px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tb-course-title {
+      min-height: 58px;
+      margin: 0 0 8px;
+      color: #111827;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .tb-course-meta {
+      margin-bottom: 10px;
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .tb-course-button {
+      display: block;
+      width: 100%;
+      margin-top: auto;
+      padding: 8px;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #ffffff;
+      text-align: center;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tb-course-button:hover {
+      background: #1d4ed8;
+    }
+
+    .tb-course-nav {
+      position: absolute;
+      top: 50%;
+      z-index: 10;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 22px;
+      cursor: pointer;
+      transform: translateY(-50%);
+    }
+
+    .tb-course-prev {
+      left: -11px;
+    }
+
+    .tb-course-next {
+      right: -11px;
+    }
+
+    .tb-course-message {
+      padding: 25px 10px;
+      color: #64748b;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .tb-course-error {
+      color: #b91c1c;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 15px 8px;
+      }
+
+      .tb-course-widget {
+        padding: 14px;
+        border-radius: 12px;
+      }
+
+      .tb-course-header {
+        flex-direction: column;
+      }
+
+      .tb-course-controls {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .tb-course-select,
+      .tb-course-search {
+        width: 100%;
+      }
+
+      .tb-course-card {
+        flex-basis: 165px;
+        width: 165px;
+      }
+
+      .tb-course-nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    class="tb-course-widget"
+    id="tbCourseWidget"
+  >
+    <div class="tb-course-message">
+      Loading active courses...
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID =
+      "1my2S7_nTsxiQBIK6YDy6A8v6Y4uiurhu8NX3WWFRnto";
+
+    /*
+     * Change only these settings
+     * for another category.
+     */
+
+    const WIDGET_TITLE =
+      "Active UPSC Courses";
+
+    const WIDGET_SUBTITLE =
+      "Explore UPSC coaching courses.";
+
+    const SUPER_GROUP =
+      "Civil Services Exam";
+
+    const GROUP_FILTER = "UPSC";
+
+    const COURSE_LIMIT = 50;
+
+
+    function loadSheetData() {
+      let conditions = [
+        "L = '" +
+        escapeQueryValue(SUPER_GROUP) +
+        "'"
+      ];
+
+      if (GROUP_FILTER) {
+        conditions.push(
+          "M = '" +
+          escapeQueryValue(GROUP_FILTER) +
+          "'"
+        );
+      }
+
+      const query =
+        "select D,E,G,H,L,M,O,P,S,U,W " +
+        "where " +
+        conditions.join(" and ");
+
+      const callbackName =
+        "tbCourseSheetCallback";
+
+      const script =
+        document.createElement("script");
+
+      script.src =
+        "https://docs.google.com/spreadsheets/d/" +
+        encodeURIComponent(SHEET_ID) +
+        "/gviz/tq?" +
+        "sheet=Sheet1" +
+        "&headers=1" +
+        "&tqx=responseHandler:" +
+        callbackName +
+        "&tq=" +
+        encodeURIComponent(query) +
+        "&cache=" +
+        Date.now();
+
+      script.onerror = function () {
+        showError(
+          "Google Sheet could not be loaded."
+        );
+      };
+
+      document.body.appendChild(script);
+    }
+
+
+    window.tbCourseSheetCallback =
+      function (response) {
+        try {
+          if (
+            !response ||
+            response.status !== "ok" ||
+            !response.table ||
+            !Array.isArray(
+              response.table.rows
+            )
+          ) {
+            showError(
+              "Invalid Google Sheet response."
+            );
+
+            console.error(response);
+
+            return;
+          }
+
+          const courses =
+            response.table.rows
+              .map(parseCourse)
+              .filter(isActiveCourse)
+              .slice(0, COURSE_LIMIT);
+
+          if (!courses.length) {
+            showError(
+              "No active courses found."
+            );
+
+            return;
+          }
+
+          renderWidget(courses);
+        } catch (error) {
+          console.error(
+            "Course widget error:",
+            error
+          );
+
+          showError(
+            "Course widget could not be rendered."
+          );
+        }
+      };
+
+
+    function parseCourse(row) {
+      const cells =
+        row.c || [];
+
+      return {
+        title:
+          getCell(cells[0]),
+
+        isDelisted:
+          getCell(cells[1]),
+
+        type:
+          getCell(cells[2]),
+
+        language:
+          getCell(cells[3]),
+
+        superGroup:
+          getCell(cells[4]),
+
+        group:
+          getCell(cells[5]),
+
+        releaseDate:
+          getCell(cells[6]),
+
+        expiryDate:
+          getCell(cells[7]),
+
+        url:
+          getCell(cells[8]),
+
+        image:
+          normalizeImageUrl(
+            getCell(cells[9])
+          ),
+
+        targetName:
+          getCell(cells[10])
+      };
+    }
+
+
+    function getCell(cell) {
+      if (!cell) {
+        return "";
+      }
+
+      if (
+        cell.f !== undefined &&
+        cell.f !== null &&
+        cell.f !== ""
+      ) {
+        return String(cell.f).trim();
+      }
+
+      if (
+        cell.v !== undefined &&
+        cell.v !== null
+      ) {
+        return String(cell.v).trim();
+      }
+
+      return "";
+    }
+
+
+    function isActiveCourse(course) {
+      const delisted =
+        normalize(
+          course.isDelisted
+        );
+
+      if (
+        delisted === "true" ||
+        delisted === "1" ||
+        delisted === "yes"
+      ) {
+        return false;
+      }
+
+      if (
+        !course.title ||
+        !course.url
+      ) {
+        return false;
+      }
+
+      const today =
+        new Date();
+
+      today.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      const release =
+        parseSheetDate(
+          course.releaseDate
+        );
+
+      const expiry =
+        parseSheetDate(
+          course.expiryDate
+        );
+
+      if (
+        release &&
+        release > today
+      ) {
+        return false;
+      }
+
+      if (
+        expiry &&
+        expiry < today
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
+
+    function renderWidget(courses) {
+      const widget =
+        document.getElementById(
+          "tbCourseWidget"
+        );
+
+      const exams =
+        getUniqueExams(courses);
+
+      widget.innerHTML = `
+        <div class="tb-course-header">
+
+          <div class="tb-course-heading">
+            <h2>
+              ${escapeHtml(WIDGET_TITLE)}
+            </h2>
+
+            <p>
+              ${escapeHtml(WIDGET_SUBTITLE)}
+            </p>
+          </div>
+
+          <div class="tb-course-controls">
+
+            <select class="tb-course-select">
+              <option value="">
+                All Active Courses
+              </option>
+
+              ${exams.map(function (exam) {
+                return `
+                  <option
+                    value="${escapeAttribute(
+                      normalize(exam)
+                    )}"
+                  >
+                    ${escapeHtml(exam)}
+                  </option>
+                `;
+              }).join("")}
+            </select>
+
+            <input
+              type="search"
+              class="tb-course-search"
+              placeholder="Search course..."
+            >
+
+          </div>
+        </div>
+
+        <div class="tb-course-slider">
+
+          <button
+            type="button"
+            class="tb-course-nav tb-course-prev"
+            aria-label="Previous courses"
+          >
+            ‹
+          </button>
+
+          <div class="tb-course-track">
+
+            ${courses.map(createCard).join("")}
+
+          </div>
+
+          <div
+            class="tb-course-message"
+            data-empty-message
+            style="display:none;"
+          >
+            No matching courses found.
+          </div>
+
+          <button
+            type="button"
+            class="tb-course-nav tb-course-next"
+            aria-label="Next courses"
+          >
+            ›
+          </button>
+
+        </div>
+      `;
+
+      bindWidgetEvents(widget);
+    }
+
+
+    function createCard(course) {
+      const exam =
+        getExamName(course);
+
+      const searchText = [
+        course.title,
+        exam,
+        course.group,
+        course.language,
+        course.type
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      return `
+        <article
+          class="tb-course-card"
+          data-exam="${escapeAttribute(
+            normalize(exam)
+          )}"
+          data-search="${escapeAttribute(
+            normalize(searchText)
+          )}"
+        >
+
+          <img
+            class="tb-course-image"
+            src="${escapeAttribute(
+              course.image
+            )}"
+            alt="${escapeAttribute(
+              course.title
+            )}"
+            loading="lazy"
+          >
+
+          <div class="tb-course-body">
+
+            <span class="tb-course-label">
+              Featured
+            </span>
+
+            <h3 class="tb-course-title">
+              ${escapeHtml(course.title)}
+            </h3>
+
+            <div class="tb-course-meta">
+              ${escapeHtml(
+                [
+                  course.language,
+                  course.type
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              )}
+            </div>
+
+            <a
+              class="tb-course-button"
+              href="${escapeAttribute(
+                course.url
+              )}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Course
+            </a>
+
+          </div>
+        </article>
+      `;
+    }
+
+
+    function bindWidgetEvents(widget) {
+      const track =
+        widget.querySelector(
+          ".tb-course-track"
+        );
+
+      const select =
+        widget.querySelector(
+          ".tb-course-select"
+        );
+
+      const search =
+        widget.querySelector(
+          ".tb-course-search"
+        );
+
+      const cards =
+        Array.from(
+          widget.querySelectorAll(
+            ".tb-course-card"
+          )
+        );
+
+      const emptyMessage =
+        widget.querySelector(
+          "[data-empty-message]"
+        );
+
+      function filterCards() {
+        const selectedExam =
+          normalize(select.value);
+
+        const searchTerm =
+          normalize(search.value);
+
+        let visibleCount = 0;
+
+        cards.forEach(function (card) {
+          const cardExam =
+            normalize(
+              card.dataset.exam
+            );
+
+          const cardSearch =
+            normalize(
+              card.dataset.search
+            );
+
+          const examMatches =
+            !selectedExam ||
+            cardExam === selectedExam;
+
+          const searchMatches =
+            !searchTerm ||
+            cardSearch.includes(
+              searchTerm
+            );
+
+          const shouldShow =
+            examMatches &&
+            searchMatches;
+
+          card.hidden =
+            !shouldShow;
+
+          if (shouldShow) {
+            visibleCount++;
+          }
+        });
+
+        emptyMessage.style.display =
+          visibleCount
+            ? "none"
+            : "block";
+
+        track.scrollLeft = 0;
+      }
+
+      select.addEventListener(
+        "change",
+        filterCards
+      );
+
+      search.addEventListener(
+        "input",
+        filterCards
+      );
+
+      widget
+        .querySelector(
+          ".tb-course-prev"
+        )
+        .addEventListener(
+          "click",
+          function () {
+            track.scrollBy({
+              left: -450,
+              behavior: "smooth"
+            });
+          }
+        );
+
+      widget
+        .querySelector(
+          ".tb-course-next"
+        )
+        .addEventListener(
+          "click",
+          function () {
+            track.scrollBy({
+              left: 450,
+              behavior: "smooth"
+            });
+          }
+        );
+    }
+
+
+    function getUniqueExams(courses) {
+      const unique = {};
+
+      courses.forEach(function (course) {
+        const exam =
+          getExamName(course);
+
+        if (exam) {
+          unique[
+            normalize(exam)
+          ] = exam;
+        }
+      });
+
+      return Object
+        .values(unique)
+        .sort(function (a, b) {
+          return a.localeCompare(b);
+        });
+    }
+
+
+    function getExamName(course) {
+      return (
+        course.targetName ||
+        course.group ||
+        "Other Courses"
+      );
+    }
+
+
+    function parseSheetDate(value) {
+      if (!value) {
+        return null;
+      }
+
+      const text =
+        String(value).trim();
+
+      const match =
+        text.match(
+          /Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/
+        );
+
+      if (match) {
+        return new Date(
+          Number(match[1]),
+          Number(match[2]),
+          Number(match[3]),
+          Number(match[4] || 0),
+          Number(match[5] || 0),
+          Number(match[6] || 0)
+        );
+      }
+
+      const date =
+        new Date(
+          text.replace(
+            " ",
+            "T"
+          )
+        );
+
+      return Number.isNaN(
+        date.getTime()
+      )
+        ? null
+        : date;
+    }
+
+
+    function normalizeImageUrl(value) {
+      const url =
+        String(value || "").trim();
+
+      if (url.startsWith("//")) {
+        return "https:" + url;
+      }
+
+      return url;
+    }
+
+
+    function normalize(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase();
+    }
+
+
+    function escapeQueryValue(value) {
+      return String(value || "")
+        .replace(/'/g, "''");
+    }
+
+
+    function escapeHtml(value) {
+      const div =
+        document.createElement("div");
+
+      div.textContent =
+        String(value || "");
+
+      return div.innerHTML;
+    }
+
+
+    function escapeAttribute(value) {
+      return escapeHtml(value)
+        .replace(/"/g, "&quot;");
+    }
+
+
+    function showError(message) {
+      const widget =
+        document.getElementById(
+          "tbCourseWidget"
+        );
+
+      widget.innerHTML = `
+        <div
+          class="tb-course-message tb-course-error"
+        >
+          ${escapeHtml(message)}
+        </div>
+      `;
+    }
+
+
+    loadSheetData();
+  </script>
+</body>
+</html>
