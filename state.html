@@ -273,16 +273,22 @@
     const SUPER_GROUP =
       "State Govt. Exams";
 
-    const GROUP_FILTER = "";
+    const GROUP_FILTER =
+      "";
 
     const COURSE_LIMIT = 50;
+
+    const UTM_SOURCE = "testbook";
+    const UTM_MEDIUM = "course_widget";
+    const UTM_CAMPAIGN = "state_exam_courses";
 
 
     function loadSheetData() {
       let conditions = [
         "L = '" +
         escapeQueryValue(SUPER_GROUP) +
-        "'"
+        "'",
+        "E = false"
       ];
 
       if (GROUP_FILTER) {
@@ -448,11 +454,7 @@
           course.isDelisted
         );
 
-      if (
-        delisted === "true" ||
-        delisted === "1" ||
-        delisted === "yes"
-      ) {
+      if (delisted !== "false") {
         return false;
       }
 
@@ -651,7 +653,7 @@
             <a
               class="tb-course-button"
               href="${escapeAttribute(
-                course.url
+                addUtmParameters(course.url, course)
               )}"
               target="_blank"
               rel="noopener noreferrer"
@@ -851,6 +853,43 @@
       )
         ? null
         : date;
+    }
+
+
+    function addUtmParameters(rawUrl, course) {
+      if (!rawUrl) {
+        return "#";
+      }
+
+      try {
+        const url = new URL(rawUrl);
+
+        url.searchParams.set("utm_source", UTM_SOURCE);
+        url.searchParams.set("utm_medium", UTM_MEDIUM);
+        url.searchParams.set("utm_campaign", UTM_CAMPAIGN);
+        url.searchParams.set(
+          "utm_content",
+          normalizeUtmValue(
+            course.targetName ||
+            course.group ||
+            course.title
+          )
+        );
+
+        return url.toString();
+      } catch (error) {
+        console.error("Invalid course URL:", rawUrl);
+        return rawUrl;
+      }
+    }
+
+
+    function normalizeUtmValue(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
     }
 
 
