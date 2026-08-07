@@ -273,8 +273,7 @@
     const SUPER_GROUP =
       "SSC Exams";
 
-    const GROUP_FILTER =
-      "";
+    const GROUP_FILTER = "";
 
     const COURSE_LIMIT = 50;
 
@@ -282,13 +281,20 @@
     const UTM_MEDIUM = "course_widget";
     const UTM_CAMPAIGN = "ssc_courses";
 
+    let tbCategoryIds = new Set();
+    let tbCategoryMap = new Map();
+
 
     function loadSheetData() {
+      loadCategoryMapping();
+    }
+
+
+    function loadCategoryMapping() {
       let conditions = [
         "L = '" +
         escapeQueryValue(SUPER_GROUP) +
-        "'",
-        "E = false"
+        "'"
       ];
 
       if (GROUP_FILTER) {
@@ -300,13 +306,36 @@
       }
 
       const query =
-        "select D,E,G,H,L,M,O,P,S,U,W " +
+        "select A,L,M " +
         "where " +
         conditions.join(" and ");
 
-      const callbackName =
-        "tbCourseSheetCallback";
+      loadGvizSheet(
+        "Sheet1",
+        query,
+        "tbCategorySheetCallback"
+      );
+    }
 
+
+    function loadLatestCourses() {
+      const query =
+        "select A,B,C,D,E,H,J,K,P " +
+        "where E = 0";
+
+      loadGvizSheet(
+        "Sheet3",
+        query,
+        "tbLatestCourseSheetCallback"
+      );
+    }
+
+
+    function loadGvizSheet(
+      sheetName,
+      query,
+      callbackName
+    ) {
       const script =
         document.createElement("script");
 
@@ -314,7 +343,8 @@
         "https://docs.google.com/spreadsheets/d/" +
         encodeURIComponent(SHEET_ID) +
         "/gviz/tq?" +
-        "sheet=Sheet1" +
+        "sheet=" +
+        encodeURIComponent(sheetName) +
         "&headers=1" +
         "&tqx=responseHandler:" +
         callbackName +
@@ -333,37 +363,98 @@
     }
 
 
-    window.tbCourseSheetCallback =
+    window.tbCategorySheetCallback =
       function (response) {
         try {
-          if (
-            !response ||
-            response.status !== "ok" ||
-            !response.table ||
-            !Array.isArray(
-              response.table.rows
-            )
-          ) {
+          if (!isValidSheetResponse(response)) {
             showError(
-              "Invalid Google Sheet response."
+              "Category mapping could not be loaded."
             );
-
             console.error(response);
+            return;
+          }
 
+          tbCategoryIds = new Set();
+          tbCategoryMap = new Map();
+
+          response.table.rows.forEach(
+            function (row) {
+              const cells = row.c || [];
+              const id = getCell(cells[0]);
+              const superGroup = getCell(cells[1]);
+              const group = getCell(cells[2]);
+
+              if (!id) {
+                return;
+              }
+
+              tbCategoryIds.add(id);
+              tbCategoryMap.set(id, {
+                superGroup: superGroup,
+                group: group
+              });
+            }
+          );
+
+          if (!tbCategoryIds.size) {
+            showError(
+              "No courses found for this category."
+            );
+            return;
+          }
+
+          loadLatestCourses();
+        } catch (error) {
+          console.error(
+            "Category mapping error:",
+            error
+          );
+          showError(
+            "Category mapping could not be processed."
+          );
+        }
+      };
+
+
+    window.tbLatestCourseSheetCallback =
+      function (response) {
+        try {
+          if (!isValidSheetResponse(response)) {
+            showError(
+              "Latest course data could not be loaded."
+            );
+            console.error(response);
             return;
           }
 
           const courses =
             response.table.rows
-              .map(parseCourse)
-              .filter(isActiveCourse)
+              .map(parseLatestCourse)
+              .filter(function (course) {
+                return (
+                  tbCategoryIds.has(course.classId) &&
+                  isActiveCourse(course)
+                );
+              })
+              .map(function (course) {
+                const category =
+                  tbCategoryMap.get(
+                    course.classId
+                  ) || {};
+
+                course.superGroup =
+                  category.superGroup || "";
+                course.group =
+                  category.group || "";
+
+                return course;
+              })
               .slice(0, COURSE_LIMIT);
 
           if (!courses.length) {
             showError(
               "No active courses found."
             );
-
             return;
           }
 
@@ -373,7 +464,6 @@
             "Course widget error:",
             error
           );
-
           showError(
             "Course widget could not be rendered."
           );
@@ -381,45 +471,48 @@
       };
 
 
-    function parseCourse(row) {
-      const cells =
-        row.c || [];
+    function isValidSheetResponse(response) {
+      return Boolean(
+        response &&
+        response.status === "ok" &&
+        response.table &&
+        Array.isArray(response.table.rows)
+      );
+    }
+
+
+    function parseLatestCourse(row) {
+      const cells = row.c || [];
 
       return {
-        title:
+        classId:
           getCell(cells[0]),
 
-        isDelisted:
+        title:
           getCell(cells[1]),
 
-        type:
+        language:
           getCell(cells[2]),
 
-        language:
+        type:
           getCell(cells[3]),
 
-        superGroup:
+        isDelisted:
           getCell(cells[4]),
 
-        group:
+        releaseDate:
           getCell(cells[5]),
 
-        releaseDate:
+        url:
           getCell(cells[6]),
 
-        expiryDate:
+        targetName:
           getCell(cells[7]),
-
-        url:
-          getCell(cells[8]),
 
         image:
           normalizeImageUrl(
-            getCell(cells[9])
-          ),
-
-        targetName:
-          getCell(cells[10])
+            getCell(cells[8])
+          )
       };
     }
 
@@ -450,51 +543,34 @@
 
     function isActiveCourse(course) {
       const delisted =
-        normalize(
-          course.isDelisted
-        );
+        normalize(course.isDelisted);
 
-      if (delisted !== "false") {
+      if (
+        delisted !== "0" &&
+        delisted !== "false"
+      ) {
         return false;
       }
 
       if (
+        !course.classId ||
         !course.title ||
         !course.url
       ) {
         return false;
       }
 
-      const today =
-        new Date();
-
-      today.setHours(
-        0,
-        0,
-        0,
-        0
-      );
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
       const release =
         parseSheetDate(
           course.releaseDate
         );
 
-      const expiry =
-        parseSheetDate(
-          course.expiryDate
-        );
-
       if (
         release &&
         release > today
-      ) {
-        return false;
-      }
-
-      if (
-        expiry &&
-        expiry < today
       ) {
         return false;
       }
@@ -653,7 +729,10 @@
             <a
               class="tb-course-button"
               href="${escapeAttribute(
-                addUtmParameters(course.url, course)
+                addUtmParameters(
+                  course.url,
+                  course
+                )
               )}"
               target="_blank"
               rel="noopener noreferrer"
@@ -856,7 +935,11 @@
     }
 
 
-    function addUtmParameters(rawUrl, course) {
+
+    function addUtmParameters(
+      rawUrl,
+      course
+    ) {
       if (!rawUrl) {
         return "#";
       }
@@ -864,9 +947,18 @@
       try {
         const url = new URL(rawUrl);
 
-        url.searchParams.set("utm_source", UTM_SOURCE);
-        url.searchParams.set("utm_medium", UTM_MEDIUM);
-        url.searchParams.set("utm_campaign", UTM_CAMPAIGN);
+        url.searchParams.set(
+          "utm_source",
+          UTM_SOURCE
+        );
+        url.searchParams.set(
+          "utm_medium",
+          UTM_MEDIUM
+        );
+        url.searchParams.set(
+          "utm_campaign",
+          UTM_CAMPAIGN
+        );
         url.searchParams.set(
           "utm_content",
           normalizeUtmValue(
@@ -878,7 +970,10 @@
 
         return url.toString();
       } catch (error) {
-        console.error("Invalid course URL:", rawUrl);
+        console.error(
+          "Invalid course URL:",
+          rawUrl
+        );
         return rawUrl;
       }
     }
