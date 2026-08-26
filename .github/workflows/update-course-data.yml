@@ -1,5 +1,4 @@
 name: Update Course Widget Data
-
 on:
   schedule:
     - cron: "*/5 * * * *"
@@ -15,7 +14,6 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,29 +22,30 @@ jobs:
         env:
           REDASH_API_KEY: ${{ secrets.REDASH_API_KEY }}
         run: |
-          test -n "$REDASH_API_KEY" || (echo "REDASH_API_KEY secret is missing" && exit 1)
-
-          curl --fail --silent --show-error --location \
-            "https://data.testbook.com/api/queries/9085/results.csv?api_key=${REDASH_API_KEY}" \
+          set -euo pipefail
+          test -n "${REDASH_API_KEY:-}" || (echo "REDASH_API_KEY secret is missing" >&2 && exit 1)
+          curl --fail --silent --show-error --location --retry 3 \
+            --header "Authorization: Key ${REDASH_API_KEY}" \
+            "https://data.testbook.com/api/queries/9085/results.csv" \
             --output /tmp/courses.csv
-
+          test -s /tmp/courses.csv || (echo "Redash returned an empty CSV" >&2 && exit 1)
           test "$(wc -l < /tmp/courses.csv)" -gt 100 || \
-            (echo "Redash CSV looks incomplete" && exit 1)
+            (echo "Redash CSV looks incomplete" >&2 && exit 1)
 
       - name: Generate public widget data
         run: |
-          python scripts/update_course_data.py /tmp/courses.csv data
+          set -euo pipefail
+          python3 "${GITHUB_WORKSPACE}/scripts/update_course_data.py" /tmp/courses.csv "${GITHUB_WORKSPACE}/data"
 
       - name: Commit data changes
         run: |
-          if git diff --quiet -- data; then
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet -- data; then
             echo "No course changes"
             exit 0
           fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add data
           git commit -m "Update course widget data"
           git push
