@@ -2,132 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Testbook Course Widget</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; max-width: 100%; min-height: 0; overflow-x: hidden; }
     body {
-      margin: 0;
-      padding: 30px 16px;
-      background: #ffffff;
+      padding: 8px;
+      background: #fff;
       font-family: Arial, sans-serif;
+      color: #111827;
     }
-
     .tb-course-widget {
       width: 100%;
       max-width: 920px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 14px;
       overflow: hidden;
       border: 1px solid #dce7f3;
-      border-radius: 16px;
+      border-radius: 14px;
       background: #f7faff;
     }
-
     .tb-course-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
-
+    .tb-course-heading { min-width: 0; }
     .tb-course-heading h2 {
       margin: 0 0 4px;
       color: #111827;
       font-size: 22px;
-      line-height: 1.3;
+      line-height: 1.25;
     }
-
     .tb-course-heading p {
       margin: 0;
       color: #475569;
       font-size: 13px;
-      line-height: 1.45;
+      line-height: 1.4;
     }
-
     .tb-course-controls {
       display: flex;
       gap: 8px;
+      min-width: 0;
     }
-
-    .tb-course-select,
-    .tb-course-search {
+    .tb-course-select, .tb-course-search {
       height: 38px;
       padding: 0 12px;
       border: 1px solid #cbd5e1;
       border-radius: 9px;
-      background: #ffffff;
+      background: #fff;
       color: #111827;
       font-size: 13px;
       outline: none;
     }
-
-    .tb-course-select {
-      width: 180px;
-    }
-
-    .tb-course-search {
-      width: 190px;
-    }
-
-    .tb-course-slider {
-      position: relative;
-    }
-
+    .tb-course-select { width: 180px; }
+    .tb-course-search { width: 190px; }
+    .tb-course-slider { position: relative; min-width: 0; }
     .tb-course-track {
       display: flex;
       gap: 12px;
       overflow-x: auto;
+      overflow-y: hidden;
       padding: 2px 2px 8px;
       scroll-behavior: smooth;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-inline: contain;
     }
-
-    .tb-course-track::-webkit-scrollbar {
-      display: none;
-    }
-
+    .tb-course-track::-webkit-scrollbar { display: none; }
     .tb-course-card {
       flex: 0 0 180px;
       width: 180px;
+      min-width: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       border: 1px solid #e2e8f0;
       border-radius: 11px;
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+      scroll-snap-align: start;
     }
-
-    .tb-course-card[hidden] {
-      display: none;
-    }
-
+    .tb-course-card[hidden] { display: none; }
     .tb-course-image {
       width: 100%;
-      height: 101px;
+      aspect-ratio: 16 / 9;
+      height: auto;
       display: block;
       object-fit: cover;
       background: #e2e8f0;
     }
-
     .tb-course-body {
       flex: 1;
       display: flex;
       flex-direction: column;
       padding: 9px;
     }
-
     .tb-course-label {
       display: inline-block;
       width: fit-content;
@@ -139,22 +112,26 @@
       font-size: 11px;
       font-weight: 700;
     }
-
     .tb-course-title {
-      min-height: 58px;
+      min-height: 56px;
       margin: 0 0 8px;
       color: #111827;
       font-size: 14px;
       line-height: 1.35;
       font-weight: 700;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
     }
-
     .tb-course-meta {
       margin-bottom: 10px;
       color: #64748b;
       font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-
     .tb-course-button {
       display: block;
       width: 100%;
@@ -162,17 +139,13 @@
       padding: 8px;
       border-radius: 8px;
       background: #2563eb;
-      color: #ffffff;
+      color: #fff;
       text-align: center;
       text-decoration: none;
       font-size: 12px;
       font-weight: 700;
     }
-
-    .tb-course-button:hover {
-      background: #1d4ed8;
-    }
-
+    .tb-course-button:hover { background: #1d4ed8; }
     .tb-course-nav {
       position: absolute;
       top: 50%;
@@ -183,121 +156,104 @@
       border: 0;
       border-radius: 50%;
       background: #0f172a;
-      color: #ffffff;
+      color: #fff;
       font-size: 22px;
       cursor: pointer;
       transform: translateY(-50%);
     }
-
-    .tb-course-prev {
-      left: -11px;
-    }
-
-    .tb-course-next {
-      right: -11px;
-    }
-
+    .tb-course-prev { left: -10px; }
+    .tb-course-next { right: -10px; }
     .tb-course-message {
-      padding: 25px 10px;
+      padding: 22px 10px;
       color: #64748b;
       text-align: center;
       font-size: 14px;
     }
+    .tb-course-error { color: #b91c1c; }
 
-    .tb-course-error {
-      color: #b91c1c;
-    }
-
+    /* Mobile: one readable card at a time instead of tiny stretched cards. */
     @media (max-width: 700px) {
-      body {
-        padding: 15px 8px;
-      }
-
+      body { padding: 0; }
       .tb-course-widget {
-        padding: 14px;
-        border-radius: 12px;
+        max-width: 100%;
+        padding: 9px;
+        border-radius: 11px;
       }
-
       .tb-course-header {
         flex-direction: column;
+        gap: 9px;
+        margin-bottom: 9px;
       }
-
+      .tb-course-heading, .tb-course-controls { width: 100%; min-width: 0; }
+      .tb-course-heading h2 { font-size: 18px; line-height: 1.2; }
+      .tb-course-heading p { font-size: 11px; line-height: 1.35; }
       .tb-course-controls {
-        width: 100%;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 7px;
       }
-
-      .tb-course-select,
-      .tb-course-search {
+      .tb-course-select, .tb-course-search {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: 38px;
+        font-size: 16px; /* prevents iPhone input zoom */
       }
-
+      .tb-course-track {
+        width: 100%;
+        max-width: 100%;
+        gap: 9px;
+        padding: 2px 28px 7px 0;
+        scroll-snap-type: x mandatory;
+      }
       .tb-course-card {
-        flex-basis: 165px;
-        width: 165px;
+        flex: 0 0 calc(100% - 30px);
+        width: calc(100% - 30px);
+        max-width: 310px;
       }
-
-      .tb-course-nav {
-        display: none;
+      .tb-course-title { min-height: 0; font-size: 13px; -webkit-line-clamp: 3; }
+      .tb-course-body { padding: 8px; }
+      .tb-course-nav { display: none; }
+    }
+    @media (min-width: 520px) and (max-width: 700px) {
+      .tb-course-card {
+        flex-basis: calc(50% - 5px);
+        width: calc(50% - 5px);
+        max-width: none;
       }
     }
   </style>
 </head>
-
 <body>
-
-  <div
-    class="tb-course-widget"
-    id="tbCourseWidget"
-  >
-    <div class="tb-course-message">
-      Loading active courses...
-    </div>
+  <div class="tb-course-widget" id="tbCourseWidget">
+    <div class="tb-course-message">Loading active courses...</div>
   </div>
 
   <script>
-    const DATA_URL =
-      "./data/defence.json";
-
-    const WIDGET_TITLE =
-      "Active Defence Courses";
-
-    const WIDGET_SUBTITLE =
-      "Explore defence exam courses or select an exam.";
-
-    const SUPER_GROUP =
-      "Defence Exams";
-
-    const GROUP_FILTER = "";
-
+    const DATA_URL = "./data/defence.json";
+    const CATEGORY = "defence";
+    const WIDGET_TITLE = "Active Defence Courses";
+    const WIDGET_SUBTITLE = "Explore defence exam courses or select an exam.";
     const UTM_SOURCE = "testbook";
     const UTM_MEDIUM = "course_widget";
     const UTM_CAMPAIGN = "defence_courses";
-
+    const CURRENT_YEAR = new Date().getFullYear();
 
     async function loadCourseData() {
       try {
-        const response = await fetch(
-          DATA_URL + "?t=" + Date.now(),
-          { cache: "no-store" }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "Course data HTTP " + response.status
-          );
-        }
-
+        const response = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+        if (!response.ok) throw new Error("Course data HTTP " + response.status);
         const data = await response.json();
-        const courses = Array.isArray(data)
-          ? data
-          : (Array.isArray(data.courses) ? data.courses : []);
+        const raw = Array.isArray(data) ? data : (Array.isArray(data.courses) ? data.courses : []);
+        const courses = raw
+          .filter(isActiveCourse)
+          .filter(isCurrentCycleCourse)
+          .sort(compareCourses);
 
         if (!courses.length) {
-          showError("No active courses found.");
+          showError("No current active courses found.");
           return;
         }
-
         renderWidget(courses);
       } catch (error) {
         console.error("Course data load error:", error);
@@ -305,533 +261,209 @@
       }
     }
 
-
     function isActiveCourse(course) {
-      const delisted =
-        normalize(
-          course.isDelisted
-        );
-
-      /*
-       * Strictly show only false / 0.
-       * TRUE, 1, blank and other values are hidden.
-       */
-      if (
-        delisted !== "false" &&
-        delisted !== "0"
-      ) {
-        return false;
-      }
-
-      if (
-        !course.title ||
-        !course.url
-      ) {
-        return false;
-      }
-
-      const today =
-        new Date();
-
-      today.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      const release =
-        parseSheetDate(
-          course.releaseDate
-        );
-
-      const expiry =
-        parseSheetDate(
-          course.expiryDate
-        );
-
-      if (
-        release &&
-        release > today
-      ) {
-        return false;
-      }
-
-      if (
-        expiry &&
-        expiry < today
-      ) {
-        return false;
-      }
-
+      const delisted = normalize(course.isDelisted);
+      if (delisted !== "false" && delisted !== "0") return false;
+      if (!course.title || !course.url) return false;
+      const today = new Date(); today.setHours(0,0,0,0);
+      const release = parseSheetDate(course.releaseDate);
+      const expiry = parseSheetDate(course.expiryDate);
+      if (release && release > today) return false;
+      if (expiry && expiry < today) return false;
       return true;
     }
 
+    /* Hide explicitly old-year courses (e.g. 2025) while retaining 2026+, future, and evergreen titles. */
+    function isCurrentCycleCourse(course) {
+      const years = extractYears(course.title);
+      return !years.length || Math.max.apply(null, years) >= CURRENT_YEAR;
+    }
+
+    function extractYears(value) {
+      const text = String(value || "");
+      const years = [];
+      (text.match(/\b20\d{2}\b/g) || []).forEach(y => years.push(Number(y)));
+      const range = /\b(20\d{2})\s*[-/]\s*(\d{2})\b/g;
+      let m;
+      while ((m = range.exec(text))) {
+        const century = Math.floor(Number(m[1]) / 100) * 100;
+        years.push(century + Number(m[2]));
+      }
+      return Array.from(new Set(years));
+    }
+
+    function compareCourses(a, b) {
+      const ay = courseYearScore(a), by = courseYearScore(b);
+      if (ay !== by) return by - ay;
+      const ad = parseSheetDate(a.releaseDate), bd = parseSheetDate(b.releaseDate);
+      return (bd ? bd.getTime() : 0) - (ad ? ad.getTime() : 0);
+    }
+
+    function courseYearScore(course) {
+      const years = extractYears(course.title);
+      if (years.includes(CURRENT_YEAR)) return 4;
+      if (years.some(y => y > CURRENT_YEAR)) return 3;
+      if (!years.length) return 2;
+      return 1;
+    }
 
     function renderWidget(courses) {
-      const widget =
-        document.getElementById(
-          "tbCourseWidget"
-        );
-
-      const exams =
-        getUniqueExams(courses);
-
+      const widget = document.getElementById("tbCourseWidget");
+      const exams = getUniqueExams(courses);
       widget.innerHTML = `
         <div class="tb-course-header">
-
           <div class="tb-course-heading">
-            <h2>
-              ${escapeHtml(WIDGET_TITLE)}
-            </h2>
-
-            <p>
-              ${escapeHtml(WIDGET_SUBTITLE)}
-            </p>
+            <h2>${escapeHtml(WIDGET_TITLE)}</h2>
+            <p>${escapeHtml(WIDGET_SUBTITLE)}</p>
           </div>
-
           <div class="tb-course-controls">
-
-            <select class="tb-course-select">
-              <option value="">
-                All Active Courses
-              </option>
-
-              ${exams.map(function (exam) {
-                return `
-                  <option
-                    value="${escapeAttribute(
-                      normalize(exam)
-                    )}"
-                  >
-                    ${escapeHtml(exam)}
-                  </option>
-                `;
-              }).join("")}
+            <select class="tb-course-select" aria-label="Select exam">
+              <option value="">All Active Courses</option>
+              ${exams.map(exam => `<option value="${escapeAttribute(normalize(exam))}">${escapeHtml(exam)}</option>`).join("")}
             </select>
-
-            <input
-              type="search"
-              class="tb-course-search"
-              placeholder="Search course..."
-            >
-
+            <input type="search" class="tb-course-search" placeholder="Search course..." aria-label="Search course">
           </div>
         </div>
-
         <div class="tb-course-slider">
-
-          <button
-            type="button"
-            class="tb-course-nav tb-course-prev"
-            aria-label="Previous courses"
-          >
-            ‹
-          </button>
-
-          <div class="tb-course-track">
-
-            ${courses.map(createCard).join("")}
-
-          </div>
-
-          <div
-            class="tb-course-message"
-            data-empty-message
-            style="display:none;"
-          >
-            No matching courses found.
-          </div>
-
-          <button
-            type="button"
-            class="tb-course-nav tb-course-next"
-            aria-label="Next courses"
-          >
-            ›
-          </button>
-
-        </div>
-      `;
-
+          <button type="button" class="tb-course-nav tb-course-prev" aria-label="Previous courses">‹</button>
+          <div class="tb-course-track">${courses.map(createCard).join("")}</div>
+          <div class="tb-course-message" data-empty-message style="display:none;">No matching courses found.</div>
+          <button type="button" class="tb-course-nav tb-course-next" aria-label="Next courses">›</button>
+        </div>`;
       bindWidgetEvents(widget);
+      reportWidgetHeight();
     }
-
 
     function createCard(course) {
-      const exam =
-        getExamName(course);
-
-      const searchText = [
-        course.title,
-        exam,
-        course.group,
-        course.language,
-        course.type
-      ]
-        .filter(Boolean)
-        .join(" ");
-
+      const exam = getExamName(course);
+      const searchText = [course.title, exam, course.group, course.language, course.type].filter(Boolean).join(" ");
+      const image = course.image || "";
       return `
-        <article
-          class="tb-course-card"
-          data-exam="${escapeAttribute(
-            normalize(exam)
-          )}"
-          data-search="${escapeAttribute(
-            normalize(searchText)
-          )}"
-        >
-
-          <img
-            class="tb-course-image"
-            src="${escapeAttribute(
-              course.image
-            )}"
-            alt="${escapeAttribute(
-              course.title
-            )}"
-            loading="lazy"
-          >
-
+        <article class="tb-course-card" data-exam="${escapeAttribute(normalize(exam))}" data-search="${escapeAttribute(normalize(searchText))}">
+          <img class="tb-course-image" src="${escapeAttribute(image)}" alt="${escapeAttribute(course.title)}" loading="lazy">
           <div class="tb-course-body">
-
-            <span class="tb-course-label">
-              Featured
-            </span>
-
-            <h3 class="tb-course-title">
-              ${escapeHtml(course.title)}
-            </h3>
-
-            <div class="tb-course-meta">
-              ${escapeHtml(
-                [
-                  course.language,
-                  course.type
-                ]
-                  .filter(Boolean)
-                  .join(" · ")
-              )}
-            </div>
-
-            <a
-              class="tb-course-button"
-              href="${escapeAttribute(
-                addUtmParameters(
-                  course.url,
-                  course
-                )
-              )}"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Course
-            </a>
-
+            <span class="tb-course-label">Featured</span>
+            <h3 class="tb-course-title">${escapeHtml(course.title)}</h3>
+            <div class="tb-course-meta">${escapeHtml([course.language, course.type].filter(Boolean).join(" · "))}</div>
+            <a class="tb-course-button" href="${escapeAttribute(addUtmParameters(course.url, course))}" target="_blank" rel="noopener noreferrer">View Course</a>
           </div>
-        </article>
-      `;
+        </article>`;
     }
-
 
     function bindWidgetEvents(widget) {
-      const track =
-        widget.querySelector(
-          ".tb-course-track"
-        );
-
-      const select =
-        widget.querySelector(
-          ".tb-course-select"
-        );
-
-      const search =
-        widget.querySelector(
-          ".tb-course-search"
-        );
-
-      const cards =
-        Array.from(
-          widget.querySelectorAll(
-            ".tb-course-card"
-          )
-        );
-
-      const emptyMessage =
-        widget.querySelector(
-          "[data-empty-message]"
-        );
+      const track = widget.querySelector(".tb-course-track");
+      const select = widget.querySelector(".tb-course-select");
+      const search = widget.querySelector(".tb-course-search");
+      const cards = Array.from(widget.querySelectorAll(".tb-course-card"));
+      const emptyMessage = widget.querySelector("[data-empty-message]");
 
       function filterCards() {
-        const selectedExam =
-          normalize(select.value);
-
-        const searchTerm =
-          normalize(search.value);
-
+        const selectedExam = normalize(select.value);
+        const searchTerm = normalize(search.value);
         let visibleCount = 0;
-
-        cards.forEach(function (card) {
-          const cardExam =
-            normalize(
-              card.dataset.exam
-            );
-
-          const cardSearch =
-            normalize(
-              card.dataset.search
-            );
-
-          const examMatches =
-            !selectedExam ||
-            cardExam === selectedExam;
-
-          const searchMatches =
-            !searchTerm ||
-            cardSearch.includes(
-              searchTerm
-            );
-
-          const shouldShow =
-            examMatches &&
-            searchMatches;
-
-          card.hidden =
-            !shouldShow;
-
-          if (shouldShow) {
-            visibleCount++;
-          }
+        cards.forEach(card => {
+          const examMatches = !selectedExam || normalize(card.dataset.exam) === selectedExam;
+          const searchMatches = !searchTerm || normalize(card.dataset.search).includes(searchTerm);
+          const show = examMatches && searchMatches;
+          card.hidden = !show;
+          if (show) visibleCount++;
         });
-
-        emptyMessage.style.display =
-          visibleCount
-            ? "none"
-            : "block";
-
+        emptyMessage.style.display = visibleCount ? "none" : "block";
         track.scrollLeft = 0;
+        reportWidgetHeight();
       }
 
-      select.addEventListener(
-        "change",
-        filterCards
-      );
-
-      search.addEventListener(
-        "input",
-        filterCards
-      );
-
-      widget
-        .querySelector(
-          ".tb-course-prev"
-        )
-        .addEventListener(
-          "click",
-          function () {
-            track.scrollBy({
-              left: -450,
-              behavior: "smooth"
-            });
-          }
-        );
-
-      widget
-        .querySelector(
-          ".tb-course-next"
-        )
-        .addEventListener(
-          "click",
-          function () {
-            track.scrollBy({
-              left: 450,
-              behavior: "smooth"
-            });
-          }
-        );
+      select.addEventListener("change", filterCards);
+      search.addEventListener("input", filterCards);
+      widget.querySelector(".tb-course-prev").addEventListener("click", () => track.scrollBy({left:-450,behavior:"smooth"}));
+      widget.querySelector(".tb-course-next").addEventListener("click", () => track.scrollBy({left:450,behavior:"smooth"}));
     }
-
 
     function getUniqueExams(courses) {
       const unique = {};
-
-      courses.forEach(function (course) {
-        const exam =
-          getExamName(course);
-
-        if (exam) {
-          unique[
-            normalize(exam)
-          ] = exam;
-        }
+      courses.forEach(course => {
+        const exam = getExamName(course);
+        if (exam) unique[normalize(exam)] = exam;
       });
-
-      return Object
-        .values(unique)
-        .sort(function (a, b) {
-          return a.localeCompare(b);
-        });
+      return Object.values(unique).sort((a,b) => a.localeCompare(b));
     }
-
 
     function getExamName(course) {
-      return (
-        course.targetName ||
-        course.group ||
-        "Other Courses"
-      );
+      const target = cleanExamName(course.targetName || "");
+      if (target && target !== "Other Courses") return target;
+      return cleanExamName(course.group || "Other Courses");
     }
 
+    /* Keep dropdown labels clean and group common discipline variants under one exam. */
+    function cleanExamName(value) {
+      let text = String(value || "").trim();
+      text = text
+        .replace(/\b20\d{2}(?:\s*[-/]\s*(?:20)?\d{2})?\b/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+      if (/^RRB\s+JE(?:\s+(?:CE|EE|EC|ECE|ME|CIVIL|ELECTRICAL|ELECTRONICS(?:\s*&\s*CS)?|MECHANICAL))?$/i.test(text)) return "RRB JE";
+      if (/^SSC\s+JE(?:\s+(?:CE|EE|ME|CIVIL|ELECTRICAL|MECHANICAL))?$/i.test(text)) return "SSC JE";
+      if (/^GATE(?:\s+(?:CE|EE|EC|ECE|ME|CS|CSE))?$/i.test(text)) return "GATE";
+      return text || "Other Courses";
+    }
 
     function parseSheetDate(value) {
-      if (!value) {
-        return null;
-      }
-
-      const text =
-        String(value).trim();
-
-      const match =
-        text.match(
-          /Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/
-        );
-
-      if (match) {
-        return new Date(
-          Number(match[1]),
-          Number(match[2]),
-          Number(match[3]),
-          Number(match[4] || 0),
-          Number(match[5] || 0),
-          Number(match[6] || 0)
-        );
-      }
-
-      const date =
-        new Date(
-          text.replace(
-            " ",
-            "T"
-          )
-        );
-
-      return Number.isNaN(
-        date.getTime()
-      )
-        ? null
-        : date;
+      if (!value) return null;
+      const text = String(value).trim();
+      const match = text.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
+      if (match) return new Date(Number(match[1]),Number(match[2]),Number(match[3]),Number(match[4]||0),Number(match[5]||0),Number(match[6]||0));
+      const date = new Date(text.replace(" ","T"));
+      return Number.isNaN(date.getTime()) ? null : date;
     }
-
-
-
 
     function addUtmParameters(rawUrl, course) {
-      if (!rawUrl) {
-        return "#";
-      }
-
+      if (!rawUrl) return "#";
       try {
-        const url =
-          new URL(rawUrl);
-
-        url.searchParams.set(
-          "utm_source",
-          UTM_SOURCE
-        );
-
-        url.searchParams.set(
-          "utm_medium",
-          UTM_MEDIUM
-        );
-
-        url.searchParams.set(
-          "utm_campaign",
-          UTM_CAMPAIGN
-        );
-
-        url.searchParams.set(
-          "utm_content",
-          normalizeUtmValue(
-            course.targetName ||
-            course.group ||
-            course.title
-          )
-        );
-
+        const url = new URL(rawUrl);
+        url.searchParams.set("utm_source", UTM_SOURCE);
+        url.searchParams.set("utm_medium", UTM_MEDIUM);
+        url.searchParams.set("utm_campaign", UTM_CAMPAIGN);
+        url.searchParams.set("utm_content", normalizeUtmValue(getExamName(course) || course.title));
         return url.toString();
-      } catch (error) {
-        return rawUrl;
-      }
+      } catch (_) { return rawUrl; }
     }
-
 
     function normalizeUtmValue(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "");
+      return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
     }
-
-
-    function normalizeImageUrl(value) {
-      const url =
-        String(value || "").trim();
-
-      if (url.startsWith("//")) {
-        return "https:" + url;
-      }
-
-      return url;
-    }
-
-
-    function normalize(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase();
-    }
-
-
-    function escapeQueryValue(value) {
-      return String(value || "")
-        .replace(/'/g, "''");
-    }
-
-
+    function normalize(value) { return String(value || "").trim().toLowerCase(); }
     function escapeHtml(value) {
-      const div =
-        document.createElement("div");
-
-      div.textContent =
-        String(value || "");
-
-      return div.innerHTML;
+      const div = document.createElement("div"); div.textContent = String(value || ""); return div.innerHTML;
     }
-
-
-    function escapeAttribute(value) {
-      return escapeHtml(value)
-        .replace(/"/g, "&quot;");
-    }
-
+    function escapeAttribute(value) { return escapeHtml(value).replace(/"/g,"&quot;"); }
 
     function showError(message) {
-      const widget =
-        document.getElementById(
-          "tbCourseWidget"
-        );
-
-      widget.innerHTML = `
-        <div
-          class="tb-course-message tb-course-error"
-        >
-          ${escapeHtml(message)}
-        </div>
-      `;
+      document.getElementById("tbCourseWidget").innerHTML = `<div class="tb-course-message tb-course-error">${escapeHtml(message)}</div>`;
+      reportWidgetHeight();
     }
 
+    /* Sends the real content height to the WordPress parent iframe. */
+    let heightFrame = 0;
+    function reportWidgetHeight() {
+      cancelAnimationFrame(heightFrame);
+      heightFrame = requestAnimationFrame(() => {
+        const widget = document.getElementById("tbCourseWidget");
+        const h = Math.ceil((widget ? widget.getBoundingClientRect().bottom : document.body.scrollHeight) + 8);
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type:"tb-course-widget-height", height:h, category:CATEGORY }, "*");
+        }
+      });
+    }
+
+    if ("ResizeObserver" in window) {
+      const ro = new ResizeObserver(reportWidgetHeight);
+      ro.observe(document.body);
+    }
+    window.addEventListener("load", reportWidgetHeight);
+    window.addEventListener("resize", reportWidgetHeight);
+    setTimeout(reportWidgetHeight, 200);
+    setTimeout(reportWidgetHeight, 900);
 
     loadCourseData();
   </script>
