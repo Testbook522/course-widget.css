@@ -126,15 +126,36 @@
   }
 
   function getUniqueExams(courses) {
-    var unique = {};
-    courses.forEach(function (course) {
-      var exam = getExamName(course);
-      if (exam && exam !== "Other Courses") unique[normalize(exam)] = exam;
+  var unique = {};
+
+  courses.forEach(function (course) {
+    var exam = getExamName(course);
+    if (exam && exam !== "Other Courses") {
+      unique[normalize(exam)] = exam;
+    }
+  });
+
+  var exams = Object.keys(unique).map(function (key) {
+    return unique[key];
+  });
+
+  // Only for Engineering Recruitment Exams:
+  // Keep SSC JE at the top.
+  if (CATEGORY === "engineering-recruitment-exams") {
+    exams.sort(function (a, b) {
+      if (normalize(a) === "ssc je") return -1;
+      if (normalize(b) === "ssc je") return 1;
+      return a.localeCompare(b);
     });
-    return Object.keys(unique).map(function (key) { return unique[key]; })
-      .sort(function (a, b) { return a.localeCompare(b); });
+
+    return exams;
   }
 
+  // Existing behaviour for all other categories
+  return exams.sort(function (a, b) {
+    return a.localeCompare(b);
+  });
+}
   function addUtmParameters(rawUrl, course) {
     if (!rawUrl) return "#";
     try {
@@ -186,6 +207,19 @@
       track.scrollLeft = 0;
       reportWidgetHeight();
     }
+// Default SSC JE only for Engineering Recruitment Exams
+if (CATEGORY === "engineering-recruitment-exams") {
+  var sscJeOption = Array.from(select.options).some(function (option) {
+    return option.value === "ssc je";
+  });
+
+  if (sscJeOption) {
+    select.value = "ssc je";
+  }
+}
+
+// Apply default selection immediately
+filterCards();
 
     select.addEventListener("change", filterCards);
     search.addEventListener("input", filterCards);
